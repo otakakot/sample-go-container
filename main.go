@@ -33,7 +33,7 @@ func main() {
 	go func() {
 		slog.Info("start server listen")
 
-		if err := srv.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
