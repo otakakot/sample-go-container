@@ -18,7 +18,9 @@ func main() {
 
 	hdl := http.NewServeMux()
 
-	hdl.HandleFunc("/", HelloHandler)
+	hdl.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprintf(w, "Hello World\n")
+	})
 
 	srv := &http.Server{
 		Addr:              ":" + port,
@@ -51,9 +53,4 @@ func main() {
 	}
 
 	slog.Info("done server shutdown")
-
-}
-
-func HelloHandler(w http.ResponseWriter, _ *http.Request) {
-	fmt.Fprintf(w, "Hello World\n")
 }
