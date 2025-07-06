@@ -21,7 +21,7 @@ func main() {
 	hdl.HandleFunc("/", HelloHandler)
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf(":%s", port),
+		Addr:              ":" + port,
 		Handler:           hdl,
 		ReadHeaderTimeout: 30 * time.Second,
 	}
