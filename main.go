@@ -4,22 +4,34 @@ import (
 	"cmp"
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 )
 
+var version string
+
 func main() {
 	port := cmp.Or(os.Getenv("PORT"), "8080")
+
+	version = ""
+
+	if bi, ok := debug.ReadBuildInfo(); ok {
+		version = bi.Main.Version
+	}
+
+	if version == "" {
+		version = "dev"
+	}
 
 	hdl := http.NewServeMux()
 
 	hdl.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, "Hello World\n")
+		_, _ = w.Write([]byte(version))
 	})
 
 	srv := &http.Server{
