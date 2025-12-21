@@ -1,0 +1,40 @@
+name: delivery
+run-name: ${{ github.ref_name }} by @${{ github.actor }} ${{ github.workflow }}
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+defaults:
+  run:
+    shell: bash
+jobs:
+  delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build Go
+        run: go build -v ./...
+      - name: Install ko
+        uses: ko-build/setup-ko@d006021bd0c28d1ce33a07e7943d48b079944c8d # v0.9
+      - name: Login to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Container Image
+        run: |
+          VERSION=$(git rev-parse --short HEAD) \
+          KO_DOCKER_REPO=ghcr.io/${{ github.repository }} \
+          SOURCE_DATE_EPOCH=$(date +%s) \
+          ko build --sbom=none --bare --tags="$(git rev-parse --short HEAD)",latest . --platform=linux/amd64
