@@ -37,4 +37,4 @@ jobs:
           VERSION=$(git rev-parse --short HEAD) \
           KO_DOCKER_REPO=ghcr.io/${{ github.repository }} \
           SOURCE_DATE_EPOCH=$(date +%s) \
-          ko build --sbom=none --bare --tags="$(git rev-parse --short HEAD)",latest . --platform=linux/amd64
+          ko build --sbom=none --bare --tags="${VERSION},latest" . --platform=linux/amd64

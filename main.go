@@ -8,30 +8,19 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime/debug"
 	"syscall"
 	"time"
 )
 
-var version string
-
 func main() {
 	port := cmp.Or(os.Getenv("PORT"), "8080")
 
-	version = ""
-
-	if bi, ok := debug.ReadBuildInfo(); ok {
-		version = bi.Main.Version
-	}
-
-	if version == "" {
-		version = "dev"
-	}
+	env := cmp.Or(os.Getenv("ENV"), "local")
 
 	hdl := http.NewServeMux()
 
 	hdl.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte(version))
+		_, _ = w.Write([]byte("Hello, " + env + "!\n"))
 	})
 
 	srv := &http.Server{
