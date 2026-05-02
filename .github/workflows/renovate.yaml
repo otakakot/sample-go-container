@@ -1,0 +1,27 @@
+name: renovate
+run-name: ${{ github.ref_name }} by @${{ github.actor }} ${{ github.workflow }}
+on:
+  pull_request:
+    types:
+      - opened
+defaults:
+  run:
+    shell: bash
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ startsWith( github.head_ref , 'renovate') }}
+    steps:
+      - name: Check branch
+        run: echo "${{ github.head_ref }}"
+      - name: Generate token
+        id: generate-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          app-id: ${{ vars.BOT_GITHUB_APP_ID }}
+          private-key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY }}
+      - name: Auto merge
+        uses: otakakot/github-actions/composite/auto-merge@main
+        with:
+          github-token: ${{ steps.generate-token.outputs.token }}
