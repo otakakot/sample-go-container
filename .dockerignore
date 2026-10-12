@@ -1,0 +1,15 @@
+# Git
+.git
+.gitignore
+
+# GitHub Actions
+.github/
+
+# Docker
+docker/
+compose.yaml
+.dockerignore
+
+# Documentation
+*.md
+LICENSE

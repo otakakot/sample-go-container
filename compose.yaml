@@ -1,23 +1,93 @@
 services:
-  app:
-    container_name: app
+  multistage:
+    container_name: multistage
+    build:
+      context: .
+      dockerfile: docker/multistage/Dockerfile
+    ports:
+      - "8181:8080"
+    environment:
+      - ENV=local
+      - PORT=8080
+    develop:
+      watch:
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
+        - action: rebuild
+          path: main.go
+  copy:
+    container_name: copy
+    build:
+      context: .
+      dockerfile: docker/copy/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ENV=local
+      - PORT=8080
+    develop:
+      watch:
+        - action: rebuild
+          path: server
+  copy-build:
+    container_name: copy-build
+    build:
+      context: .
+      dockerfile: docker/copy/Dockerfile.dev
+    volumes:
+      - .:/app
+    environment:
+      - ENV=local
+      - PORT=8080
+    develop:
+      watch:
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
+        - action: rebuild
+          path: main.go
+  ko:
+    container_name: ko
     build:
       context: .
       dockerfile_inline: |
-        FROM golang:1.26-alpine
-        WORKDIR /app
-        RUN go install github.com/air-verse/air@latest
-        ARG workdir
-        WORKDIR /app/$${workdir}
-      args:
-        - workdir=.
-    command: ["air"]
+        FROM ko.local/app:latest
     ports:
-      - 8080:8080
+      - "8282:8080"
     environment:
-      ENV: local
-      PORT: 8080
+      - ENV=local
+      - PORT=8080
+    develop:
+      watch:
+        - action: rebuild
+          path: ko.stamp
+  ko-build:
+    container_name: ko-build
+    image: ghcr.io/ko-build/ko:latest
+    working_dir: /app
+    environment:
+      - KO_DOCKER_REPO=ko.local/app
     volumes:
-      - ./:/app
-      - ${HOME}/go/pkg/mod:/go/pkg/mod
-    restart: always
+      - .:/app
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock
+      - ko-mod-cache:/go/pkg/mod
+      - ko-build-cache:/root/.cache/go-build
+    entrypoint:
+      - sh
+      - -c
+    command:
+      - ko build --bare --tags latest --platform linux/$$(go env GOARCH) . && touch ko.stamp
+    develop:
+      watch:
+        - action: restart
+          path: go.mod
+        - action: restart
+          path: go.sum
+        - action: restart
+          path: main.go
+volumes:
+  ko-mod-cache:
+  ko-build-cache:

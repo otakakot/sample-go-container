@@ -23,7 +23,18 @@ updates:
           - '*'
 
   - package-ecosystem: docker
-    directory: /
+    directory: /docker/multistage
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+    groups:
+      docker:
+        patterns:
+          - '*'
+
+  - package-ecosystem: docker
+    directory: /docker/copy
     schedule:
       interval: weekly
     labels:

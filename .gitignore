@@ -1,1 +1,13 @@
 .env
+
+# editor / OS
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Go
+server
+
+# ko
+ko.stamp
